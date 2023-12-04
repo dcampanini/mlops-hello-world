@@ -1,0 +1,51 @@
+name: Build sentence
+inputs:
+- {name: product, type: String}
+- {name: emoji, type: String}
+- {name: emojitext, type: String}
+outputs:
+- {name: Output, type: String}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - |2
+
+      if ! [ -x "$(command -v pip)" ]; then
+          python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip
+      fi
+
+      PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'kfp==1.8.22' && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp -d)
+      printf "%s" "$0" > "$program_path/ephemeral_component.py"
+      python3 -m kfp.v2.components.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+    - |2+
+
+      import kfp
+      from kfp.v2 import dsl
+      from kfp.v2.dsl import *
+      from typing import *
+
+      def build_sentence(
+          product: str,
+          emoji: str,
+          emojitext: str
+      ) -> str:
+          print("We completed the pipeline, hooray!")
+          end_str = product + " is "
+          if len(emoji) > 0:
+              end_str += emoji
+          else:
+              end_str += emojitext
+          return(end_str)
+
+    args:
+    - --executor_input
+    - {executorInput: null}
+    - --function_to_execute
+    - build_sentence

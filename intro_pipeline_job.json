@@ -1,0 +1,235 @@
+{
+  "pipelineSpec": {
+    "components": {
+      "comp-build-sentence": {
+        "executorLabel": "exec-build-sentence",
+        "inputDefinitions": {
+          "parameters": {
+            "emoji": {
+              "type": "STRING"
+            },
+            "emojitext": {
+              "type": "STRING"
+            },
+            "product": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "Output": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-emoji": {
+        "executorLabel": "exec-emoji",
+        "inputDefinitions": {
+          "parameters": {
+            "text": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "emoji": {
+              "type": "STRING"
+            },
+            "emoji_text": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-product-name": {
+        "executorLabel": "exec-product-name",
+        "inputDefinitions": {
+          "parameters": {
+            "text": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "Output": {
+              "type": "STRING"
+            }
+          }
+        }
+      }
+    },
+    "deploymentSpec": {
+      "executors": {
+        "exec-build-sentence": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "build_sentence"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'kfp==1.8.22' && \"$0\" \"$@\"\n",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.v2.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nimport kfp\nfrom kfp.v2 import dsl\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef build_sentence(\n    product: str,\n    emoji: str,\n    emojitext: str\n) -> str:\n    print(\"We completed the pipeline, hooray!\")\n    end_str = product + \" is \"\n    if len(emoji) > 0:\n        end_str += emoji\n    else:\n        end_str += emojitext\n    return(end_str)\n\n"
+            ],
+            "image": "python:3.9"
+          }
+        },
+        "exec-emoji": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "emoji"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'emoji' 'kfp==1.8.22' && \"$0\" \"$@\"\n",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.v2.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nimport kfp\nfrom kfp.v2 import dsl\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef emoji(\n    text: str,\n) -> NamedTuple(\n    \"Outputs\",\n    [\n        (\"emoji_text\", str),  # Return parameters\n        (\"emoji\", str),\n    ],\n):\n    import emoji\n\n    emoji_text = text\n    emoji_str = emoji.emojize(':' + emoji_text + ':', language='alias')\n    print(\"output one: {}; output_two: {}\".format(emoji_text, emoji_str))\n    return (emoji_text, emoji_str)\n\n"
+            ],
+            "image": "python:3.9"
+          }
+        },
+        "exec-product-name": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "product_name"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'kfp==1.8.22' && \"$0\" \"$@\"\n",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.v2.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nimport kfp\nfrom kfp.v2 import dsl\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef product_name(text: str) -> str:\n    return text\n\n"
+            ],
+            "image": "python:3.9"
+          }
+        }
+      }
+    },
+    "pipelineInfo": {
+      "name": "hello-world"
+    },
+    "root": {
+      "dag": {
+        "tasks": {
+          "build-sentence": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-build-sentence"
+            },
+            "dependentTasks": [
+              "emoji",
+              "product-name"
+            ],
+            "inputs": {
+              "parameters": {
+                "emoji": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "emoji",
+                    "producerTask": "emoji"
+                  }
+                },
+                "emojitext": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "emoji_text",
+                    "producerTask": "emoji"
+                  }
+                },
+                "product": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "Output",
+                    "producerTask": "product-name"
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "build-sentence"
+            }
+          },
+          "emoji": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-emoji"
+            },
+            "inputs": {
+              "parameters": {
+                "text": {
+                  "componentInputParameter": "emoji_str"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "emoji"
+            }
+          },
+          "product-name": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-product-name"
+            },
+            "inputs": {
+              "parameters": {
+                "text": {
+                  "componentInputParameter": "text"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "product-name"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "emoji_str": {
+            "type": "STRING"
+          },
+          "text": {
+            "type": "STRING"
+          }
+        }
+      }
+    },
+    "schemaVersion": "2.0.0",
+    "sdkVersion": "kfp-1.8.22"
+  },
+  "runtimeConfig": {
+    "gcsOutputDirectory": "gs://dev-dlk-cl-bucket/pipeline_root/",
+    "parameters": {
+      "emoji_str": {
+        "stringValue": "sparkles"
+      },
+      "text": {
+        "stringValue": "Vertex Pipelines"
+      }
+    }
+  }
+}
