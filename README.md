@@ -1,2 +1,1 @@
-# mlops-hello-world
-Pipeline MLOps using Vertex AI on GCP
+# MLOps pipeline using Vertex AI on GCP
