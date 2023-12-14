@@ -24,8 +24,11 @@ cd mlops-hello-world
 ```
 pip install -r requirements.txt
 ```
-- Run the code to compile and execute the pipeline
+- Run the code to compile the pipeline
 ```
 python hello_world_pipeline.py
 ```
-
+- Run the code to execute the pipeline
+```
+python execute.py
+```
