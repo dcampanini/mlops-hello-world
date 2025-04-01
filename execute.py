@@ -9,6 +9,7 @@ if __name__ == '__main__':
         display_name="hello-world-pipeline",
         template_path="intro_pipeline_job.json",
         job_id="hello-world-pipeline-{0}".format(TIMESTAMP),
+        location = "us-central1",
         enable_caching=False
     )
 

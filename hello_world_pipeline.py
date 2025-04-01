@@ -8,7 +8,7 @@ from kfp.v2.dsl import (Artifact, Dataset, Input, InputPath, Model, Output,
 
 
 
-PIPELINE_ROOT = 'gs://dev-dlk-cl-bucket/pipeline_root/'
+PIPELINE_ROOT = 'gs://test1-dc/pipeline_root/'
 #PROJECT_ID =  'dev-dlk-cl'
 #REGION="Placeholder value."
 
